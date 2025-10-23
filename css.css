@@ -1,0 +1,321 @@
+* {
+    margin: 0;
+    padding: 0;
+    color: whitesmoke;
+    box-sizing: border-box;
+}
+html {
+    background-color: rgb(32, 32, 32);
+}
+header {
+    background-color: rgb(42, 42, 42);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid black;
+    position: relative;
+
+}
+#progressWrapper {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 98vw;
+}
+
+#progressContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#uploadProgress {
+    width: 35vw;
+    height: 10px;
+    margin-bottom: 4px;
+    appearance: none;
+}
+
+#uploadStatus {
+    font-size: 13px;
+    color: darkgray;
+}
+header h1 {
+    display: flex;
+    align-self: center;
+}
+header div{
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-end;
+}
+header div form{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+input{
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    margin : 2px;
+}
+#searchBarDiv{
+    margin-left: 2vw;
+    margin-right: 2vw;
+}
+#sortBoxDiv{
+    width: 13vw;
+}
+#fileToUpload{
+    background-color: rgb(52, 52, 52);
+    border: 1px solid black;
+    border-radius: 5px;
+    max-width: 200px;
+}
+input[type=submit] {
+    color: whitesmoke;
+    background-color: rgb(52, 52, 52);
+    border: 1px solid black;
+    padding: 2px;
+    border-radius: 5px;
+}
+input[type=submit]:hover {
+    background-color: rgb(62, 62, 62);
+}
+input:hover {
+    cursor: pointer;
+}
+#searchBar{
+    color : black;
+    border: 2px solid black;
+    border-radius: 5px;
+    margin-right: 1px;
+    width: 100%;
+    padding-left: 1px;
+}
+header div p{
+    color: darkgray;
+    font-size: 13px;
+}
+#sortBox{
+    color : whitesmoke;
+    background-color: rgb(52, 52, 52);
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-left: 1px;
+    padding: 2px;
+}
+#sortBox option{
+    color : whitesmoke;
+}
+#sortBox:hover {
+    cursor: pointer;
+}
+#folderDisplay{
+    margin: 5px;
+}
+
+#container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.fileCards {
+    border: 1px solid black;
+    padding: 10px;
+    background-color: rgb(42, 42, 42);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    flex-direction: column;
+}
+.fileCards img, .fileCards video {
+    max-width: 100%;
+    object-fit: contain;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+/* css for touch devices */
+@media (any-pointer: coarse) {
+    header div{
+        display: flex;
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        flex-direction: row;
+        align-items: center;
+    }
+    #searchBarDiv{
+        margin: 0;
+    }
+    #searchBarDiv p{
+        margin-left: 2px;
+        margin-right: 2px;
+    }
+    #sortBoxDiv{
+        width: 18vw;
+    }
+
+    .fileCards {
+        margin: 5px;
+    }
+
+    .fileCards a img, .fileCards video {
+        max-height: 95vh;
+    }
+}
+
+/* css for non-touch devices */
+@media (any-pointer: fine) {
+    .fileCards {
+        max-width: 38vw;
+        margin: 10px;
+    }
+
+    .fileCards a img, .fileCards video {
+        width: auto;
+        height: 400px;
+    }
+}
+.fileInfo {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: rgb(42, 42, 42);
+    border: 1px solid whitesmoke;
+    border-radius: 5px;
+}
+.toggleInfoBtn {
+    margin-top: 10px;
+    padding: 2px 4px;
+    cursor: pointer;
+    color: whitesmoke;
+    background-color: rgb(52, 52, 52);
+    border: 1px solid black;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.fileControls {
+    margin-top: 10px;
+}
+
+.editBtn, .saveBtn, .deleteBtn, .downloadBtn {
+    margin-left: 5px;
+    cursor: pointer;
+    padding: 2px 2px;
+    cursor: pointer;
+    color: whitesmoke;
+    background-color: rgb(52, 52, 52);
+    border: 1px solid black;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+}
+.filenameInput {
+    width: 60%;
+    background-color: rgb(32, 32, 32);
+    color: whitesmoke;
+}
+.filenameDisplay {
+    font-weight: bold;
+}
+#recursiveForm{
+    font-size: 13px;
+    color: darkgray;
+}
+#recursiveForm label{
+    color: darkgray;
+}
+#folderContainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+}
+.folderItem {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 auto;
+    width: auto;
+    color: whitesmoke;
+    background-color: rgb(52, 52, 52);
+    padding: 3px 5px;       
+    border-radius: 3px;
+    border: 1px solid black;
+    margin: 3px;            
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.2);  
+    font-size: 13px;        
+}
+.folderItem .folderButton {
+    background-color: rgb(52, 52, 52);
+    border: 0;
+    cursor: pointer;
+    display: block;
+    padding: 1px 3px;      
+    font-size: 13px;
+    line-height: 1.2;
+}
+.folderControls {
+    margin-top: 3px;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 12px;       
+}
+.folderControls .renameBtn,
+.folderControls .deleteBtn, 
+.folderControls .createBtn{
+    padding: 1px 4px;      
+    margin: 1px 2px;
+    font-size: 12px;
+    border-radius: 3px;
+    color: whitesmoke;
+    background-color: rgb(52, 52, 52);
+    border: 1px solid black;
+    cursor: pointer;
+    box-shadow: 0px 2px 3px rgba(0,0,0,0.2);
+}
+.folderControls input[type="text"] {
+    width: 10vw;           
+    margin: 2px;
+    padding: 1px 3px;
+    font-size: 12px;
+    background-color: rgb(32, 32, 32);
+    border: 1px solid black;
+    color: whitesmoke;
+    border-radius: 3px;
+}
+#toggleFolderControls {
+    margin-left: auto;
+    padding: 2px 4px;
+    cursor: pointer;
+    color: whitesmoke;
+    background-color: rgb(52, 52, 52);
+    border: 1px solid black;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    margin-right : 5px;
+}
+.toggleVisible{
+    display: none;
+}
+button[type=submit]{
+    color: whitesmoke;
+    background-color: rgb(52, 52, 52);
+    border: 1px solid black;
+    padding: 2px;
+    border-radius: 5px;
+}
+
