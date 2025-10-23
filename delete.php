@@ -5,6 +5,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
+require_once 'db_config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fileToDelete = $_POST['deletePath'] ?? '';
@@ -12,6 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (file_exists($fileToDelete)) {
         unlink($fileToDelete);
+
+        $stmt = $conn->prepare("DELETE FROM files WHERE filepath = ?");
+        $stmt->bind_param("s", $fileToDelete);
+        $stmt->execute();
+        $stmt->close();
     }
 
     header("Location: BDrive.php?folder=" . urlencode($folder));

@@ -5,6 +5,8 @@
         exit();
     }
 
+    require_once 'db_config.php';
+
     // function to get all files in the folder and its subfolders
     function subFolderFileScan($dir) {
         $files = [];
@@ -26,13 +28,36 @@
     $selectedFolder = isset($_GET['folder']) ? trim($_GET['folder'], '/') : '';
     $scanPath = $selectedFolder ? "$baseDir/$selectedFolder" : $baseDir;
 
-    if (!is_dir($scanPath)) { 
+    if (!is_dir($scanPath)) {
         echo "<p style='color:red;'>Folder does not exist: " . htmlspecialchars($scanPath) . "</p>";
         $savedFiles = [];
+        $fileDataMap = [];
     } else {
-        $savedFiles = $isRecursive
-        ? subFolderFileScan($scanPath)
-        : array_filter(array_map(fn($f) => "$scanPath/$f", scandir($scanPath)), 'is_file');
+        if ($isRecursive) {
+            $sql = "SELECT * FROM files WHERE filepath LIKE ?";
+            $stmt = $conn->prepare($sql);
+            $likePath = $scanPath . '%';
+            $stmt->bind_param("s", $likePath);
+        } else {
+            $sql = "SELECT * FROM files WHERE filepath LIKE ? AND filepath NOT LIKE ?";
+            $stmt = $conn->prepare($sql);
+            $likePath = $scanPath . '/%';
+            $notLikePath = $scanPath . '/%/%';
+            $stmt->bind_param("ss", $likePath, $notLikePath);
+        }
+
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $savedFiles = [];
+        $fileDataMap = [];
+        while ($row = $result->fetch_assoc()) {
+            if (file_exists($row['filepath'])) {
+                $savedFiles[] = $row['filepath'];
+                $fileDataMap[$row['filepath']] = $row;
+            }
+        }
+        $stmt->close();
     }
 ?>
 
@@ -161,9 +186,12 @@
         </nav>
     </header>
     <div id="container">
-        <?php            
+        <?php
             foreach ($savedFiles as $filePath) {
                 $file = basename($filePath);
+                $dbData = $fileDataMap[$filePath] ?? null;
+                $tags = $dbData ? $dbData['tags'] : '';
+
                 if (is_file($filePath)){
                     // Get file details
                     $fileName = pathinfo($file, PATHINFO_FILENAME);
@@ -199,11 +227,12 @@
                     }
 
                     // Render files
-                    echo "<div class='fileCards' 
-                            data-filename='" . htmlspecialchars($file) . "' 
-                            data-date='" . date("c", $fileModTime) . "' 
-                            data-type='" . htmlspecialchars($typeCategory) . "' 
-                            data-extension='" . htmlspecialchars($fileExtension) . "'>";
+                    echo "<div class='fileCards'
+                            data-filename='" . htmlspecialchars($file) . "'
+                            data-date='" . date("c", $fileModTime) . "'
+                            data-type='" . htmlspecialchars($typeCategory) . "'
+                            data-extension='" . htmlspecialchars($fileExtension) . "'
+                            data-tags='" . htmlspecialchars($tags) . "'>";
 
                     if ($typeCategory === 'image') {
                         echo "<img src='" . htmlspecialchars($filePath) . "' alt='" . htmlspecialchars($file) . "' loading='lazy' class='clickableImage'>";
@@ -263,6 +292,17 @@
                             <p>Extension: " . htmlspecialchars($fileExtension) . "</p>
                             <p>Modified: " . date("Y-m-d H:i:s", $fileModTime) . "</p>
                             <p>Size: " . number_format($fileSize / $sizeDevision, 2) . " $fileSizePrefix</p>
+                            <div class='tagSection'>
+                                <span class='tagDisplay'>Tags: " . htmlspecialchars($tags) . "</span>
+                                <input type='text' class='tagInput' value='" . htmlspecialchars($tags) . "' style='display:none;' placeholder='Enter tags (comma separated)'>
+                                <button class='editTagBtn' title='Edit Tags'>✏️</button>
+                                <form method='post' action='updateTags.php' class='tagForm' style='display:none;display:inline;'>
+                                    <input type='hidden' name='filepath' value='" . htmlspecialchars($filePath) . "'>
+                                    <input type='hidden' name='folder' value='" . htmlspecialchars($selectedFolder) . "'>
+                                    <input type='hidden' name='tags' class='tagsHidden'>
+                                    <button type='submit' class='saveTagBtn'>💾</button>
+                                </form>
+                            </div>
                         </div>";
 
                     echo "</div>";

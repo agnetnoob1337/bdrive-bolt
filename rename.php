@@ -5,6 +5,8 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
+require_once 'db_config.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $oldPath = $_POST['oldPath'] ?? '';
     $newName = basename($_POST['newName'] ?? '');
@@ -17,6 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($newName && file_exists($oldPath)) {
         if (rename($oldPath, $newPath)) {
+            $stmt = $conn->prepare("UPDATE files SET filename = ?, filepath = ? WHERE filepath = ?");
+            $stmt->bind_param("sss", $newName, $newPath, $oldPath);
+            $stmt->execute();
+            $stmt->close();
+
             header("Location: BDrive.php?folder=" . urlencode($folder));
             exit();
         } else {

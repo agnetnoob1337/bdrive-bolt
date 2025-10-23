@@ -10,7 +10,8 @@ function filterFiles() {
     let searchFileCount = 0;
     fileCards.forEach(card => {
         const fileName = card.getAttribute('data-filename').toLowerCase();
-        if (fileName.includes(searchInput)) {
+        const tags = (card.getAttribute('data-tags') || '').toLowerCase();
+        if (fileName.includes(searchInput) || tags.includes(searchInput)) {
             card.style.display = 'flex';
             searchFileCount++;
         } else {
@@ -198,6 +199,39 @@ document.querySelectorAll('.clickableImage').forEach(img => {
         img.requestFullscreen?.() || img.webkitRequestFullscreen?.() || img.msRequestFullscreen?.();
       }
     });
+});
+
+// Tag editing
+fileCards.forEach(card => {
+    const editTagBtn = card.querySelector('.editTagBtn');
+    const tagDisplay = card.querySelector('.tagDisplay');
+    const tagInput = card.querySelector('.tagInput');
+    const tagForm = card.querySelector('.tagForm');
+    const tagsHidden = card.querySelector('.tagsHidden');
+
+    if (editTagBtn) {
+        editTagBtn.addEventListener('click', () => {
+            if (tagDisplay.style.display !== 'none') {
+                tagDisplay.style.display = 'none';
+                tagInput.style.display = 'inline';
+                tagForm.style.display = 'inline';
+                tagInput.focus();
+            } else {
+                tagDisplay.style.display = 'inline';
+                tagInput.style.display = 'none';
+                tagForm.style.display = 'none';
+            }
+        });
+    }
+
+    if (tagForm) {
+        tagForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const tags = tagInput.value.trim();
+            tagsHidden.value = tags;
+            tagForm.submit();
+        });
+    }
 });
 
 // Initial sort
