@@ -7,20 +7,17 @@
 
     require_once 'db_config.php';
 
-    // function to get all files in the folder and its subfolders
-    function subFolderFileScan($dir) {
-        $files = [];
-        $items = scandir($dir);
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') continue;
-            $path = "$dir/$item";
-            if (is_dir($path)) {
-                $files = array_merge($files, subFolderFileScan($path));
-            } elseif (is_file($path)) {
-                $files[] = $path;
-            }
-        }
-        return $files;
+    // Function to count files in a folder from database
+    function getFileCountFromDB($folderPath, $conn) {
+        $stmt = $conn->prepare("SELECT COUNT(*) as count FROM files WHERE filepath LIKE ?");
+        $likePath = $folderPath . '/%';
+        $stmt->bind_param("s", $likePath);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $count = $row['count'];
+        $stmt->close();
+        return $count;
     }
 
     $isRecursive = isset($_GET['recursive']) && $_GET['recursive'] === '1';
@@ -28,37 +25,36 @@
     $selectedFolder = isset($_GET['folder']) ? trim($_GET['folder'], '/') : '';
     $scanPath = $selectedFolder ? "$baseDir/$selectedFolder" : $baseDir;
 
-    if (!is_dir($scanPath)) {
-        echo "<p style='color:red;'>Folder does not exist: " . htmlspecialchars($scanPath) . "</p>";
-        $savedFiles = [];
-        $fileDataMap = [];
+    $savedFiles = [];
+    $fileDataMap = [];
+
+    // Query database for files instead of scanning filesystem
+    if ($isRecursive) {
+        // Recursive: Get all files in current folder and subfolders
+        $sql = "SELECT * FROM files WHERE filepath LIKE ?";
+        $stmt = $conn->prepare($sql);
+        $likePath = $scanPath . '/%';
+        $stmt->bind_param("s", $likePath);
     } else {
-        if ($isRecursive) {
-            $sql = "SELECT * FROM files WHERE filepath LIKE ?";
-            $stmt = $conn->prepare($sql);
-            $likePath = $scanPath . '%';
-            $stmt->bind_param("s", $likePath);
-        } else {
-            $sql = "SELECT * FROM files WHERE filepath LIKE ? AND filepath NOT LIKE ?";
-            $stmt = $conn->prepare($sql);
-            $likePath = $scanPath . '/%';
-            $notLikePath = $scanPath . '/%/%';
-            $stmt->bind_param("ss", $likePath, $notLikePath);
-        }
-
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $savedFiles = [];
-        $fileDataMap = [];
-        while ($row = $result->fetch_assoc()) {
-            if (file_exists($row['filepath'])) {
-                $savedFiles[] = $row['filepath'];
-                $fileDataMap[$row['filepath']] = $row;
-            }
-        }
-        $stmt->close();
+        // Non-recursive: Get only files directly in current folder
+        $sql = "SELECT * FROM files WHERE filepath LIKE ? AND filepath NOT LIKE ?";
+        $stmt = $conn->prepare($sql);
+        $likePath = $scanPath . '/%';
+        $notLikePath = $scanPath . '/%/%';
+        $stmt->bind_param("ss", $likePath, $notLikePath);
     }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        // Verify file still exists on filesystem
+        if (file_exists($row['filepath'])) {
+            $savedFiles[] = $row['filepath'];
+            $fileDataMap[$row['filepath']] = $row;
+        }
+    }
+    $stmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -145,7 +141,7 @@
                     $relativePath = ltrim(str_replace($baseDir . '/', '', $folder), '/');
                 
 
-                    $fileCount = count(subFolderFileScan($folder));
+                    $fileCount = getFileCountFromDB($folder, $conn);
                     echo "<div class='folderItem'>
                             <form method='get' style='display:inline;'>
                                 <input type='hidden' name='folder' value='" . htmlspecialchars($relativePath) . "'>
