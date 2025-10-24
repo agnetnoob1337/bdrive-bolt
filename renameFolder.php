@@ -13,22 +13,31 @@ if (isset($_POST['oldFolder'], $_POST['newFolder'])) {
     $oldFolder = trim($_POST['oldFolder'], '/');
     $newFolderName = trim($_POST['newFolder']);
 
-    $oldPath = realpath("$baseDir/$oldFolder");
-    $newPath = "$baseDir/" . ($oldFolder ? dirname($oldFolder) . '/' : '') . $newFolderName;
+    // Use relative paths for both filesystem and database
+    $oldPathRelative = $oldFolder ? "$baseDir/$oldFolder" : $baseDir;
+    $newPathRelative = "$baseDir/" . ($oldFolder ? dirname($oldFolder) . '/' : '') . $newFolderName;
 
-    if ($oldPath && str_starts_with($oldPath, realpath($baseDir)) && !empty($newFolderName)) {
-        if (!file_exists($newPath)) {
-            if (rename($oldPath, $newPath)) {
+    // Remove duplicate slashes
+    $oldPathRelative = preg_replace('#/+#', '/', $oldPathRelative);
+    $newPathRelative = preg_replace('#/+#', '/', $newPathRelative);
+
+    // Verify it's a real path for security
+    $oldPathReal = realpath($oldPathRelative);
+
+    if ($oldPathReal && str_starts_with($oldPathReal, realpath($baseDir)) && !empty($newFolderName)) {
+        if (!file_exists($newPathRelative)) {
+            if (rename($oldPathRelative, $newPathRelative)) {
+                // Update all file paths in database
                 $sql = "SELECT id, filepath FROM files WHERE filepath LIKE ?";
                 $stmt = $conn->prepare($sql);
-                $likePath = $oldPath . '%';
+                $likePath = $oldPathRelative . '/%';
                 $stmt->bind_param("s", $likePath);
                 $stmt->execute();
                 $result = $stmt->get_result();
 
                 while ($row = $result->fetch_assoc()) {
                     $oldFilePath = $row['filepath'];
-                    $newFilePath = str_replace($oldPath, $newPath, $oldFilePath);
+                    $newFilePath = str_replace($oldPathRelative, $newPathRelative, $oldFilePath);
 
                     $updateStmt = $conn->prepare("UPDATE files SET filepath = ? WHERE id = ?");
                     $updateStmt->bind_param("si", $newFilePath, $row['id']);
